@@ -1,0 +1,35 @@
+specVersion: 0.0.1
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum/contract
+    name: PegSwap
+    network: poa-core
+    source:
+      address: "0xd7AD6F7a420b89F34DbB78A1C17634599500a094"
+      abi: PegSwap
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.2
+      language: wasm/assemblyscript
+      entities:
+        - LiquidityUpdated
+        - OwnershipTransferRequested
+        - OwnershipTransferred
+        - StuckTokensRecovered
+        - TokensSwapped
+      abis:
+        - name: PegSwap
+          file: ./abis/PegSwap.json
+      eventHandlers:
+        - event: LiquidityUpdated(uint256,indexed address,indexed address)
+          handler: handleLiquidityUpdated
+        - event: OwnershipTransferRequested(indexed address,indexed address)
+          handler: handleOwnershipTransferRequested
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: StuckTokensRecovered(uint256,indexed address)
+          handler: handleStuckTokensRecovered
+        - event: TokensSwapped(indexed address,indexed address,indexed address,uint256,uint256)
+          handler: handleTokensSwapped
+      file: ./src/mapping.ts
