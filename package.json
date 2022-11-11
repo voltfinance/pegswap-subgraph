@@ -1,10 +1,11 @@
 {
   "name": "pegswap",
   "license": "UNLICENSED",
+  "author": "mul53",
   "scripts": {
     "codegen": "graph codegen",
     "build": "graph build",
-    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ voltfinance/pegswap",
+    "deploy": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ voltfinance/fusd-migration-pegswap",
     "create-local": "graph create --node http://localhost:8020/ voltfinance/pegswap",
     "remove-local": "graph remove --node http://localhost:8020/ voltfinance/pegswap",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 voltfinance/pegswap"

@@ -1,16 +1,17 @@
-specVersion: 0.0.1
+specVersion: 0.0.2
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
     name: PegSwap
-    network: poa-core
+    network: fuse
     source:
       address: "0xd7AD6F7a420b89F34DbB78A1C17634599500a094"
       abi: PegSwap
+      startBlock: 19957775
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.2
+      apiVersion: 0.0.4
       language: wasm/assemblyscript
       entities:
         - LiquidityUpdated
@@ -21,6 +22,8 @@ dataSources:
       abis:
         - name: PegSwap
           file: ./abis/PegSwap.json
+        - name: ERC20
+          file: ./abis/ERC20.json
       eventHandlers:
         - event: LiquidityUpdated(uint256,indexed address,indexed address)
           handler: handleLiquidityUpdated

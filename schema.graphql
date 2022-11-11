@@ -1,6 +1,27 @@
-type ExampleEntity @entity {
+type PegSwap @entity {
   id: ID!
-  count: BigInt!
-  amount: BigInt! # uint256
-  source: Bytes! # address
+  totalSourceAmountSwapped: BigInt!
+  totalTargetAmountSwapped: BigInt!
+}
+
+type Token @entity {
+  id: ID!
+  symbol: String!
+  name: String!
+  decimals: Int!
+}
+
+type User @entity {
+  id: ID!
+  totalSourceAmountSwapped: BigInt!
+  totalTargetAmountSwapped: BigInt!
+}
+
+type Swap @entity {
+  id: ID!
+  caller: Bytes!
+  sourceAmount: BigInt!
+  targetAmount: BigInt!
+  sourceToken: Token!
+  targetToken: Token!
 }

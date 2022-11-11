@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts"
+import { Address, BigInt } from "@graphprotocol/graph-ts"
 import {
   PegSwap,
   LiquidityUpdated,
@@ -7,57 +7,93 @@ import {
   StuckTokensRecovered,
   TokensSwapped
 } from "../generated/PegSwap/PegSwap"
-import { ExampleEntity } from "../generated/schema"
+import { ERC20 as Token } from "../generated/PegSwap/ERC20"
+import { Token as TokenEntity, User as UserEntity, PegSwap as PegSwapEntity, Swap as SwapEntity } from "../generated/schema"
 
-export function handleLiquidityUpdated(event: LiquidityUpdated): void {
-  // Entities can be loaded from the store using a string ID; this ID
-  // needs to be unique across all entities of the same type
-  let entity = ExampleEntity.load(event.transaction.from.toHex())
+function getOrCreateToken(address: Address): TokenEntity {
+  let id = address.toHexString()
 
-  // Entities only exist after they have been saved to the store;
-  // `null` checks allow to create entities on demand
-  if (entity == null) {
-    entity = new ExampleEntity(event.transaction.from.toHex())
+  let tokenEntity = TokenEntity.load(id)
 
-    // Entity fields can be set using simple assignments
-    entity.count = BigInt.fromI32(0)
+  if (tokenEntity != null) {
+    return tokenEntity as TokenEntity
   }
 
-  // BigInt and BigDecimal math are supported
-  entity.count = entity.count + BigInt.fromI32(1)
+  tokenEntity = new TokenEntity(id)
 
-  // Entity fields can be set based on event parameters
-  entity.amount = event.params.amount
-  entity.source = event.params.source
+  let token = Token.bind(address)
 
-  // Entities can be written to the store with `.save()`
-  entity.save()
+  let name = token.try_name()
+  if (!name.reverted) {
+    tokenEntity.name = name.value
+  }
 
-  // Note: If a handler doesn't require existing field values, it is faster
-  // _not_ to load the entity from the store. Instead, create it fresh with
-  // `new Entity(...)`, set the fields that should be updated and save the
-  // entity back to the store. Fields that were not set or unset remain
-  // unchanged, allowing for partial updates to be applied.
+  let symbol = token.try_symbol()
+  if (!symbol.reverted) {
+    tokenEntity.symbol = symbol.value
+  }
 
-  // It is also possible to access smart contracts from mappings. For
-  // example, the contract that has emitted the event can be connected to
-  // with:
-  //
-  // let contract = Contract.bind(event.address)
-  //
-  // The following functions can then be called on this contract to access
-  // state variables and other data:
-  //
-  // - contract.getSwappableAmount(...)
-  // - contract.owner(...)
+  let decimals = token.try_decimals()
+  if (!decimals.reverted) {
+    tokenEntity.decimals = decimals.value
+  }
+
+  tokenEntity.save()
+
+  return tokenEntity as TokenEntity
 }
 
-export function handleOwnershipTransferRequested(
-  event: OwnershipTransferRequested
-): void {}
+function getOrCreateUser(address: Address): UserEntity {
+  let id = address.toHexString()
 
-export function handleOwnershipTransferred(event: OwnershipTransferred): void {}
+  let userEntity = UserEntity.load(id)
+  if (userEntity != null) {
+    return userEntity as UserEntity
+  }
 
-export function handleStuckTokensRecovered(event: StuckTokensRecovered): void {}
+  userEntity = new UserEntity(id)
+  userEntity.totalSourceAmountSwapped = BigInt.fromString('0')
+  userEntity.totalTargetAmountSwapped = BigInt.fromString('0')
+  userEntity.save()
 
-export function handleTokensSwapped(event: TokensSwapped): void {}
+  return userEntity as UserEntity
+}
+
+function getOrCreatePegSwap(address: Address): PegSwapEntity {
+  let id = address.toHexString()
+
+  let pegSwapEntity = PegSwapEntity.load(id)
+  if (pegSwapEntity != null) {
+    return pegSwapEntity as PegSwapEntity
+  }
+
+  pegSwapEntity = new PegSwapEntity(id)
+  pegSwapEntity.totalSourceAmountSwapped = BigInt.fromString('0')
+  pegSwapEntity.totalTargetAmountSwapped = BigInt.fromString('0')
+  pegSwapEntity.save()
+
+  return pegSwapEntity as PegSwapEntity
+}
+
+export function handleTokensSwapped(event: TokensSwapped): void {
+  let sourceToken = getOrCreateToken(event.params.source)
+  let targetToken = getOrCreateToken(event.params.target)
+
+  let user = getOrCreateUser(event.params.caller)
+  user.totalSourceAmountSwapped = user.totalSourceAmountSwapped.plus(event.params.sourceAmount)
+  user.totalTargetAmountSwapped = user.totalTargetAmountSwapped.plus(event.params.targetAmount)
+  user.save()
+
+  let swap = new SwapEntity(event.transaction.hash.toHexString())
+  swap.sourceAmount = event.params.sourceAmount
+  swap.targetAmount = event.params.targetAmount
+  swap.sourceToken = sourceToken.id
+  swap.targetToken = targetToken.id
+  swap.caller = event.params.caller
+  swap.save()
+
+  let pegswap = getOrCreatePegSwap(event.params.caller)
+  pegswap.totalSourceAmountSwapped = pegswap.totalSourceAmountSwapped.plus(event.params.sourceAmount)
+  pegswap.totalTargetAmountSwapped = pegswap.totalTargetAmountSwapped.plus(event.params.targetAmount)
+  pegswap.save()
+}
