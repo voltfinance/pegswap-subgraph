@@ -1,4 +1,6 @@
 specVersion: 0.0.2
+description: PegSwap subgraph
+repository: https://github.com/voltfinance/pegswap-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
