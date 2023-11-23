@@ -1,8 +1,8 @@
-import { Address, BigInt } from "@graphprotocol/graph-ts"
-import { ERC20 as Token } from "../generated/PegSwap/ERC20"
+import { Address, BigDecimal, BigInt } from "@graphprotocol/graph-ts"
+import { ERC20 as Token } from "../generated/PegSwapV1/ERC20"
 import { Token as TokenEntity, User as UserEntity, PegSwap as PegSwapEntity } from "../generated/schema"
 
-export function getOrCreateToken(address: Address): TokenEntity {
+export function getOrCreateToken(address: Address, pegswap: PegSwapEntity): TokenEntity {
     let id = address.toHexString()
   
     let tokenEntity = TokenEntity.load(id)
@@ -29,8 +29,16 @@ export function getOrCreateToken(address: Address): TokenEntity {
     if (!decimals.reverted) {
       tokenEntity.decimals = decimals.value
     }
+
+    tokenEntity.balance = BigDecimal.fromString('0')
   
     tokenEntity.save()
+
+    let tokens = pegswap.tokens
+    tokens.push(id)
+    pegswap.tokens = tokens
+
+    pegswap.save()
   
     return tokenEntity as TokenEntity
   }
@@ -60,8 +68,7 @@ export function getOrCreateToken(address: Address): TokenEntity {
     }
   
     pegSwapEntity = new PegSwapEntity(id)
-    pegSwapEntity.totalSourceAmountSwapped = BigInt.fromString('0')
-    pegSwapEntity.totalTargetAmountSwapped = BigInt.fromString('0')
+    pegSwapEntity.tokens = []
     pegSwapEntity.save()
   
     return pegSwapEntity as PegSwapEntity

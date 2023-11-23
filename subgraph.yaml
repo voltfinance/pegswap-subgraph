@@ -1,28 +1,54 @@
-specVersion: 0.0.2
+specVersion: 0.0.4
 description: PegSwap subgraph
 repository: https://github.com/voltfinance/pegswap-subgraph
 schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum/contract
-    name: PegSwap
+    name: PegSwapV1
     network: fuse
     source:
-      address: "0xd7AD6F7a420b89F34DbB78A1C17634599500a094"
-      abi: PegSwap
-      startBlock: 19957775
+      address: "0x56eE525bB9056BeD23A6055E60b2A2C5C225D1db"
+      abi: PegSwapV1
+      startBlock: 24860118
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.4
+      apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - TokensSwapped
+        - PegSwap
+        - Token
+        - Swap
       abis:
-        - name: PegSwap
-          file: ./abis/PegSwap.json
+        - name: PegSwapV1
+          file: ./abis/PegSwapV1.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: TokensSwapped(uint256,indexed address,indexed address,indexed address)
+          handler: handleTokensSwapped
+      file: ./src/mappingV1.ts
+  - kind: ethereum/contract
+    name: PegSwapV2
+    network: fuse
+    source:
+      address: "0x9a9bE0479152B09B5F85a5Ad81a7cc492d549557"
+      abi: PegSwapV2
+      startBlock: 26315858
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      entities:
+        - PegSwap
+        - Token
+        - Swap
+      abis:
+        - name: PegSwapV2
+          file: ./abis/PegSwapV2.json
         - name: ERC20
           file: ./abis/ERC20.json
       eventHandlers:
         - event: TokensSwapped(indexed address,indexed address,indexed address,uint256,uint256)
           handler: handleTokensSwapped
-      file: ./src/mapping.ts
+      file: ./src/mappingV2.ts

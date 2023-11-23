@@ -1,7 +1,6 @@
 type PegSwap @entity {
   id: ID!
-  totalSourceAmountSwapped: BigInt!
-  totalTargetAmountSwapped: BigInt!
+  tokens: [Token!]!
 }
 
 type Token @entity {
@@ -9,6 +8,7 @@ type Token @entity {
   symbol: String!
   name: String!
   decimals: Int!
+  balance: BigDecimal!
 }
 
 type User @entity {
