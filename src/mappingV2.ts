@@ -27,6 +27,10 @@ export function handleTokensSwapped(event: TokensSwapped): void {
 
   for (let i = 0; i < pegswap.tokens.length; i++) {
     let token = pegswap.tokens[i]
+    if (token == '0x68c9736781e9316ebf5c3d49fe0c1f45d2d104cd') {
+      continue
+    }
+
     let tokenEntity = TokenEntity.load(token)
     let tokenContract = ERC20.bind(Address.fromString(token))
 
