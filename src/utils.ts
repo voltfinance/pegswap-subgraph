@@ -120,46 +120,52 @@ export function updateSourceTokenHistory(event: TokensSwapped): TokenDayData {
     tokenDayData.token = event.params.source.toHexString()
     tokenDayData.timestamp = event.block.timestamp
     tokenDayData.reserve0 = getPairPrice(WFUSE_WETH_PAIR)
-    tokenDayData.reserve1 = getPairPrice(WFUSE_BUSD_PAIR)
-  } else {
-    let tokenContract = ERC20.bind(Address.fromString(token.id))
-    let balance = tokenContract
-      .balanceOf(Address.fromString(pegswap.id))
-      .toBigDecimal()
-      .div(
-        BigInt.fromString("10")
-          .pow(token.decimals as u8)
-          .toBigDecimal()
-      )
 
-    const amount = event.params.amount.toBigDecimal().div(
+    tokenDayData.reserve1 = getPairPrice(WFUSE_BUSD_PAIR)
+    tokenDayData.priceUSD = BIG_DECIMAL_ZERO
+  }
+  let tokenContract = ERC20.bind(Address.fromString(token.id))
+  let balance = tokenContract
+    .balanceOf(Address.fromString(pegswap.id))
+    .toBigDecimal()
+    .div(
       BigInt.fromString("10")
         .pow(token.decimals as u8)
         .toBigDecimal()
     )
 
-    tokenDayData.balance = balance
-    tokenDayData.volume = tokenDayData.volume.plus(amount)
+  const amount = event.params.amount.toBigDecimal().div(
+    BigInt.fromString("10")
+      .pow(token.decimals as u8)
+      .toBigDecimal()
+  )
 
-    tokenDayData.timestamp = event.block.timestamp
+  tokenDayData.balance = balance
+  tokenDayData.volume = tokenDayData.volume.plus(amount)
 
-    if (
-      event.params.source.toHexString() === WRAPPED_ETHER_ON_FUSE ||
-      event.params.source.toHexString() === WRAPPED_ETHER
-    ) {
-      tokenDayData.balanceUSD = getPairPrice(WFUSE_WETH_PAIR)
-        .div(balance)
+  tokenDayData.timestamp = event.block.timestamp
+
+  if (
+    event.params.source.toHexString() == WRAPPED_ETHER_ON_FUSE ||
+    event.params.source.toHexString() == WRAPPED_ETHER
+  ) {
+    tokenDayData.balanceUSD = getPairPrice(WFUSE_WETH_PAIR)
+      .times(balance)
+      .div(getPairPrice(WFUSE_BUSD_PAIR))
+
+    tokenDayData.volumeUSD = tokenDayData.volumeUSD.plus(
+      getPairPrice(WFUSE_WETH_PAIR)
+        .times(amount)
         .div(getPairPrice(WFUSE_BUSD_PAIR))
+    )
 
-      tokenDayData.volumeUSD = tokenDayData.volumeUSD.plus(
-        getPairPrice(WFUSE_WETH_PAIR)
-          .div(amount)
-          .div(getPairPrice(WFUSE_BUSD_PAIR))
-      )
-    } else {
-      tokenDayData.balanceUSD = balance
-      tokenDayData.volumeUSD = tokenDayData.volumeUSD.plus(amount)
-    }
+    tokenDayData.priceUSD = getPairPrice(WFUSE_WETH_PAIR)
+      .times(BigDecimal.fromString("1"))
+      .div(getPairPrice(WFUSE_BUSD_PAIR))
+  } else {
+    tokenDayData.balanceUSD = balance
+    tokenDayData.volumeUSD = tokenDayData.volumeUSD.plus(amount)
+    tokenDayData.priceUSD = BigDecimal.fromString("1")
   }
 
   tokenDayData.save()

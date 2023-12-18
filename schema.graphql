@@ -41,5 +41,6 @@ type TokenDayData @entity {
   timestamp:BigInt!
   reserve0:BigDecimal!
   reserve1:BigDecimal!
+  priceUSD:BigDecimal!
 
 }
