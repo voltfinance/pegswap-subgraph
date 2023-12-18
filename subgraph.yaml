@@ -19,14 +19,18 @@ dataSources:
         - PegSwap
         - Token
         - Swap
+        - TokenDayData
       abis:
         - name: PegSwapV1
           file: ./abis/PegSwapV1.json
         - name: ERC20
           file: ./abis/ERC20.json
+        - name: VoltagePair
+          file: ./abis/VoltagePair.json
       eventHandlers:
         - event: TokensSwapped(uint256,indexed address,indexed address,indexed address)
           handler: handleTokensSwapped
+        
       file: ./src/mappingV1.ts
   # - kind: ethereum/contract
   #   name: PegSwapV2
