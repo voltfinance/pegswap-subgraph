@@ -1,6 +1,7 @@
 type PegSwap @entity {
   id: ID!
   tokens: [Token!]!
+ 
 }
 
 type Token @entity {
@@ -9,6 +10,7 @@ type Token @entity {
   name: String!
   decimals: Int!
   balance: BigDecimal!
+  dayData: [TokenDayData!]! @derivedFrom(field: "token")
 }
 
 type User @entity {
@@ -24,4 +26,20 @@ type Swap @entity {
   targetAmount: BigInt!
   sourceToken: Token!
   targetToken: Token!
+}
+
+type TokenDayData @entity {
+  id: ID!
+  token:Token!
+  sourceAmount: BigDecimal!
+  targetAmount: BigDecimal!
+  volume:BigDecimal!
+  blockNumber:BigInt!
+  balance: BigDecimal!
+  balanceUSD: BigDecimal!
+  volumeUSD:BigDecimal!
+  timestamp:BigInt!
+  reserve0:BigDecimal!
+  reserve1:BigDecimal!
+
 }
